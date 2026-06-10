@@ -1,0 +1,16 @@
+[
+  {
+    "version": "1.0.0",
+    "date": "2026-06-10",
+    "tag": "Beta launch",
+    "notes": [
+      "Initial beta release",
+      "PDF health check analysis with scoring across accessibility, security, and usability",
+      "Yukon AI chat assistant for follow-up questions",
+      "Conversation history saved automatically",
+      "Export reports as Markdown or HTML",
+      "Multi-language support: English, Spanish, Italian",
+      "Dark mode support"
+    ]
+  }
+]

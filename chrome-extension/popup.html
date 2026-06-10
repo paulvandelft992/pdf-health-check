@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Health Check</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+  <!-- ── Header ──────────────────────────────────────────────────────────────── -->
+  <header class="ext-header">
+    <div class="ext-logo">
+      <!-- Document + checkmark icon -->
+      <svg viewBox="0 0 20 20" fill="none">
+        <path d="M4 3h8l4 4v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M12 3v5h5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M7.5 12.5l2 2 3-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <span class="ext-title">PDF Health Check</span>
+    <div class="ext-header-actions">
+      <button class="icon-btn" id="btnSettings" title="Extension settings">
+        <svg viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Screen: Settings ────────────────────────────────────────────────────── -->
+  <div class="screen" id="screen-settings">
+    <div style="padding:14px;display:flex;flex-direction:column;gap:12px">
+
+      <div style="font-size:12px;color:var(--text-sub);line-height:1.5">
+        Connect to your PDF Health Check backend to start discovering and analysing PDFs from any website.
+      </div>
+
+      <div class="card" style="gap:10px;display:flex;flex-direction:column">
+        <div class="section-label">Backend Connection</div>
+
+        <div class="form-group">
+          <label class="form-label">Backend URL</label>
+          <input class="form-input" id="cfgBackendUrl" type="url"
+                 placeholder="https://your-server.com/hcapp/backend">
+          <div class="form-hint">URL of your hosted PHP backend (no trailing slash)</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">API Key</label>
+          <input class="form-input" id="cfgApiKey" type="password" placeholder="Leave blank if not configured">
+        </div>
+      </div>
+
+      <div class="card" style="gap:10px;display:flex;flex-direction:column">
+        <div class="section-label">Your Identity</div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            <input class="form-input" id="cfgFirstName" placeholder="e.g. Paul">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            <input class="form-input" id="cfgLastName" placeholder="e.g. van Delft">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Adobe Email</label>
+          <input class="form-input" id="cfgEmail" type="email" placeholder="you@adobe.com">
+          <div class="form-hint">Must be an @adobe.com address</div>
+          <div class="form-err" id="cfgEmailErr"></div>
+        </div>
+      </div>
+
+      <div id="settingsStatus"></div>
+
+      <button class="btn btn-primary btn-full" id="btnSaveSettings">Save Settings</button>
+    </div>
+  </div>
+
+  <!-- ── Screen: Main (webpage) ──────────────────────────────────────────────── -->
+  <div class="screen" id="screen-main">
+
+    <!-- Current domain badge -->
+    <div style="padding:12px 12px 0">
+      <div class="domain-badge" id="domainBadge">
+        <div class="badge-icon">
+          <svg viewBox="0 0 20 20" fill="none">
+            <circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M10 2.5c-2 2-3 4.5-3 7.5s1 5.5 3 7.5M10 2.5c2 2 3 4.5 3 7.5s-1 5.5-3 7.5M2.5 10h15" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="badge-text" id="domainName">Loading…</div>
+          <div class="badge-sub">Current domain</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Discover options -->
+    <div style="padding:0 12px">
+      <div class="card" style="display:flex;flex-direction:column;gap:10px">
+
+        <!-- Discovery mode toggle -->
+        <div class="section-label" style="margin-bottom:2px">Discovery method</div>
+        <div class="mode-tabs" id="modeTabs">
+          <button class="mode-tab active" id="modePageCrawl" title="Follows links in page HTML — works for simple sites">
+            <svg viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;flex-shrink:0">
+              <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M8 2.5c-1.4 1.4-2 3-2 5.5s.6 4.1 2 5.5M8 2.5c1.4 1.4 2 3 2 5.5s-.6 4.1-2 5.5M2.5 8h11" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/>
+            </svg>
+            Page Crawl
+          </button>
+          <button class="mode-tab" id="modeSearchWeb" title="Uses web search — best for JS-heavy or large sites">
+            <svg viewBox="0 0 16 16" fill="none" style="width:12px;height:12px;flex-shrink:0">
+              <circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.3"/>
+              <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            </svg>
+            Search Web
+          </button>
+        </div>
+
+        <!-- Mode description -->
+        <div class="mode-desc" id="modeDescCrawl">
+          Crawls page links on <strong id="modeDescDomain"></strong>. Works well for smaller sites with directly-linked PDFs.
+        </div>
+        <div class="mode-desc hidden" id="modeDescSearch">
+          Searches the web for PDFs on <strong id="modeDescDomain2"></strong>. Best for large or JavaScript-heavy sites.
+        </div>
+
+        <div class="options-row">
+          <label style="flex:1">Max PDFs to find</label>
+          <input class="form-input" id="maxPdfs" type="number" min="1" max="200" value="50"
+                 style="width:70px;text-align:center">
+        </div>
+        <button class="btn btn-primary btn-full" id="btnDiscover">
+          <svg viewBox="0 0 20 20" fill="none">
+            <circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M13.5 13.5L17 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Discover PDFs on this domain
+        </button>
+      </div>
+    </div>
+
+    <!-- Discover status -->
+    <div style="padding:0 12px" id="discoverStatus" class="hidden"></div>
+
+    <!-- Results -->
+    <div style="padding:0 12px" id="discoverResults" class="hidden">
+      <div class="section-label" style="margin-bottom:6px">
+        <span id="pdfCountLabel">0 PDFs found</span>
+        <a href="#" id="selectAll" style="float:right;font-size:11px;font-weight:400;text-transform:none;color:var(--accent);text-decoration:none">Select all</a>
+      </div>
+      <div class="pdf-list" id="pdfList"></div>
+    </div>
+
+    <!-- HC picker (shown after results) -->
+    <div style="padding:0 12px" id="hcPickerWrap" class="hidden">
+      <div class="card" style="display:flex;flex-direction:column;gap:10px">
+        <div class="section-label">Add to Health Check</div>
+
+        <div class="hc-tabs">
+          <button class="hc-tab active" id="tabExisting">Existing</button>
+          <button class="hc-tab" id="tabNew">+ New</button>
+        </div>
+
+        <!-- Existing HC -->
+        <div id="panelExisting">
+          <div class="form-group">
+            <select class="form-select" id="hcSelect">
+              <option value="">Loading health checks…</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- New HC -->
+        <div id="panelNew" class="hidden">
+          <div class="form-group" style="gap:6px">
+            <label class="form-label">Health Check Name</label>
+            <input class="form-input" id="newHcName" placeholder="e.g. Q2 2025 Review">
+            <label class="form-label" style="margin-top:4px">Customer</label>
+            <select class="form-select" id="custSelect">
+              <option value="">Loading customers…</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="hcPickerStatus" class="hidden"></div>
+      </div>
+    </div>
+
+    <!-- Spacer -->
+    <div style="flex:1"></div>
+
+    <!-- Footer actions -->
+    <div class="footer-actions" id="mainFooter" style="display:none">
+      <button class="btn btn-secondary" id="btnCancelMain">Cancel</button>
+      <button class="btn btn-primary" id="btnSubmitMain" disabled>
+        Add <span id="selectedCount">0</span> PDFs to Health Check
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Screen: PDF viewer ───────────────────────────────────────────────────── -->
+  <div class="screen" id="screen-pdf">
+    <div style="padding:12px;display:flex;flex-direction:column;gap:10px">
+
+      <!-- PDF badge -->
+      <div class="domain-badge" id="pdfBadge">
+        <div class="badge-icon" style="background:var(--red)">
+          <svg viewBox="0 0 20 20" fill="none">
+            <path d="M4 3h8l4 4v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M12 3v5h5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M7 10h6M7 13h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div style="min-width:0">
+          <div class="badge-text" id="pdfName" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">document.pdf</div>
+          <div class="badge-sub">Currently viewing this PDF</div>
+        </div>
+      </div>
+
+      <!-- HC picker -->
+      <div class="card" style="display:flex;flex-direction:column;gap:10px">
+        <div class="section-label">Add to Health Check</div>
+
+        <div class="hc-tabs">
+          <button class="hc-tab active" id="pdfTabExisting">Existing</button>
+          <button class="hc-tab" id="pdfTabNew">+ New</button>
+        </div>
+
+        <div id="pdfPanelExisting">
+          <select class="form-select" id="pdfHcSelect">
+            <option value="">Loading health checks…</option>
+          </select>
+        </div>
+
+        <div id="pdfPanelNew" class="hidden">
+          <div class="form-group" style="gap:6px">
+            <label class="form-label">Health Check Name</label>
+            <input class="form-input" id="pdfNewHcName" placeholder="e.g. Q2 2025 Review">
+            <label class="form-label" style="margin-top:4px">Customer</label>
+            <select class="form-select" id="pdfCustSelect">
+              <option value="">Loading customers…</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div id="pdfStatus" class="hidden"></div>
+    </div>
+
+    <div style="flex:1"></div>
+
+    <div class="footer-actions">
+      <button class="btn btn-primary btn-full" id="btnAddPdf">
+        Add PDF to Health Check
+      </button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
