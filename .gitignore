@@ -20,3 +20,7 @@ npm-debug.log*
 # Editor
 .vscode/
 .idea/
+
+.env.build
+dist/
+node_modules/
