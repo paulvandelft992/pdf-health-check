@@ -1,6 +1,6 @@
 {
   "name": "pdf-health-check",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "PDF Health Check App using Adobe PDF Services API",
   "main": "electron/main.js",
   "scripts": {
@@ -21,14 +21,13 @@
   "build": {
     "appId": "com.pdfhealthcheck.app",
     "productName": "PDF Health Check",
-    "afterSign": "electron/notarize.js",
     "directories": {
       "output": "dist"
     },
     "publish": {
       "provider": "github",
-      "owner": "GITHUB_USERNAME",
-      "repo": "GITHUB_REPO_NAME",
+      "owner": "paulvandelft992",
+      "repo": "pdf-health-check",
       "private": true
     },
     "mac": {
@@ -36,6 +35,9 @@
       "icon": "assets/icon.icns",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
+      "notarize": {
+        "teamId": "F5HD4RNX7P"
+      },
       "entitlements": "electron/entitlements.mac.plist",
       "entitlementsInherit": "electron/entitlements.mac.plist",
       "target": [

@@ -12,5 +12,17 @@
       "Multi-language support: English, Spanish, Italian",
       "Dark mode support"
     ]
+  },
+  {
+    "version": "1.1.0",
+    "date": "2026-06-11",
+    "tag": "Update",
+    "notes": [
+      "Post-release updates",
+      "New PDF Health check icon",
+      "Yukon AI chat assistant for follow-up questions",
+      "Minor UI updates",
+      "Bug fixes"
+    ]
   }
 ]
