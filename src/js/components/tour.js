@@ -116,8 +116,8 @@ const Tour = (() => {
         <div class="tour-footer">
           <button class="tour-btn-skip" id="tourSkip">Skip tour</button>
           <div class="tour-btn-group">
-            <button class="tour-btn-back" id="tourPrev">← Back</button>
-            <button class="tour-btn-next" id="tourNext">Next →</button>
+            <button class="tour-btn-back" id="tourPrev">Back</button>
+            <button class="tour-btn-next" id="tourNext">Next</button>
           </div>
         </div>
       </div>`;
@@ -155,13 +155,13 @@ const Tour = (() => {
 
     // Text
     document.getElementById('tourTitle').textContent = step.title;
-    document.getElementById('tourBody').textContent  = step.body;
+    document.getElementById('tourBody').innerHTML    = step.body;
 
     // Buttons
     const prevBtn = document.getElementById('tourPrev');
     const nextBtn = document.getElementById('tourNext');
     prevBtn.style.visibility = isFirst ? 'hidden' : '';
-    nextBtn.textContent      = isLast  ? 'Done!' : 'Next →';
+    nextBtn.textContent      = isLast  ? 'Done' : 'Next';
     nextBtn.classList.toggle('tour-btn-next-last', isLast);
 
     // Spotlight & card position (wait one frame so card height is measured)

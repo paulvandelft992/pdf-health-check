@@ -358,37 +358,48 @@ const SettingsModal = (() => {
   /* Backend connection ------------------------------------------------------- */
   function _renderConnection(body) {
     if (!UserProfile.isAdmin()) { _renderAdminGate(body, 'connection'); return; }
+
+    const hardcoded = typeof APP_CONFIG !== 'undefined' && APP_CONFIG.backendUrl;
+    const url = hardcoded ? APP_CONFIG.backendUrl : (_saved.backendUrl || '');
+    const key = hardcoded ? APP_CONFIG.apiKey     : (_saved.apiKey     || '');
+
     body.innerHTML = `
       ${_sectionHead(t('settings.backendSection'))}
+      ${hardcoded ? `
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;
+                    background:color-mix(in srgb,var(--accent) 8%,transparent);
+                    border:1px solid color-mix(in srgb,var(--accent) 20%,transparent);
+                    font-size:13px;color:var(--gray-700);margin-bottom:20px">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style="color:var(--accent);flex-shrink:0">
+            <circle cx="7.5" cy="7.5" r="7" stroke="currentColor" stroke-width="1.2"/>
+            <path d="M7.5 4v4.5M7.5 10.5v.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+          </svg>
+          Connection is hardcoded in the app and managed centrally. Changes made here are for temporary override only.
+        </div>` : ''}
       <div class="form-group">
-        <label class="form-label">${t('settings.backendUrlLabel')} <span>*</span></label>
+        <label class="form-label">${t('settings.backendUrlLabel')}</label>
         <input id="pmBackendUrl" class="form-input" placeholder="${t('settings.backendUrlPh')}"
-               value="${escHtml(_saved.backendUrl || '')}">
-        <div class="pm-hint">${t('settings.backendUrlHint')}</div>
+               value="${escHtml(url)}" ${hardcoded ? 'readonly style="opacity:.6"' : ''}>
       </div>
       <div class="form-group">
         <label class="form-label">${t('settings.apiKeyLabel')}</label>
         <input id="pmApiKey" class="form-input" type="password" placeholder="${t('settings.apiKeyElectronPh')}"
-               value="${escHtml(_saved.apiKey || '')}">
-        <div class="pm-hint">${t('settings.apiKeyHint')}</div>
+               value="${escHtml(key)}" ${hardcoded ? 'readonly style="opacity:.6"' : ''}>
       </div>
       <div class="pm-inline-action">
         <button class="btn btn-secondary btn-sm" id="pmTestConn" type="button">${t('settings.testConnBtn')}</button>
         <span id="pmConnStatus" class="pm-status"></span>
-      </div>
-      <div class="pm-actions">
-        <button class="btn btn-primary" id="pmSaveConn" type="button">${t('settings.saveBtn')}</button>
       </div>`;
 
     body.querySelector('#pmTestConn').addEventListener('click', async () => {
-      const url    = body.querySelector('#pmBackendUrl').value.trim();
-      const key    = body.querySelector('#pmApiKey').value.trim();
-      const status = body.querySelector('#pmConnStatus');
-      if (!url) { Toast.show(t('settings.enterUrl'), 'warning'); return; }
+      const testUrl = body.querySelector('#pmBackendUrl').value.trim();
+      const testKey = body.querySelector('#pmApiKey').value.trim();
+      const status  = body.querySelector('#pmConnStatus');
+      if (!testUrl) { Toast.show(t('settings.enterUrl'), 'warning'); return; }
       status.textContent = t('settings.testingConn');
       status.className = 'pm-status';
       try {
-        const res  = await fetch(`${url}/api/ping`, { headers: { 'X-API-Key': key } });
+        const res  = await fetch(`${testUrl}/api/ping`, { headers: { 'X-API-Key': testKey } });
         const data = await res.json();
         if (res.ok) {
           status.textContent = '✓ ' + t('settings.connOk', { version: data.data?.version || data.version || 'OK' });
@@ -402,8 +413,6 @@ const SettingsModal = (() => {
         status.className = 'pm-status err';
       }
     });
-
-    body.querySelector('#pmSaveConn').addEventListener('click', () => _saveAll(body));
   }
 
   /* Yukon/AI ----------------------------------------------------------------- */
@@ -773,10 +782,9 @@ const SettingsModal = (() => {
       ${_sectionHead(t('settings.guideSection'), t('settings.guideDesc'))}
       <div class="pm-actions" style="margin-top:8px">
         <button class="btn btn-primary" id="pmStartTour" type="button">
-          <svg viewBox="0 0 16 16" fill="none" style="width:13px;height:13px;flex-shrink:0">
-            <path d="M2 8a6 6 0 1 1 1.5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2 12V8h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M18.2705 3.72895C17.8784 3.60834 17.4556 3.82954 17.3335 4.22553L16.8021 5.95569C15.3655 3.62543 12.8058 2.13031 10 2.13031C5.58887 2.13032 2 5.71919 2 10.1303C2 14.5414 5.58887 18.1303 10 18.1303C12.6616 18.1303 15.1416 16.812 16.6333 14.6035C16.8652 14.2602 16.7749 13.7939 16.4316 13.562C16.0879 13.3305 15.6221 13.4213 15.3901 13.7636C14.1777 15.5585 12.1626 16.6303 10 16.6303C6.41602 16.6303 3.5 13.7143 3.5 10.1303C3.5 6.54634 6.41602 3.63032 10 3.63032C12.2007 3.63032 14.2119 4.76466 15.3999 6.54548L13.8525 6.07026C13.46 5.95112 13.0371 6.17036 12.9155 6.56684C12.794 6.96284 13.0161 7.38227 13.4121 7.50385L16.792 8.54194C16.8652 8.5644 16.9394 8.57514 17.0127 8.57514C17.333 8.57514 17.6299 8.36811 17.729 8.04535L18.7671 4.66596C18.8887 4.26996 18.6665 3.85053 18.2705 3.72895Z" fill="currentColor"/>
+</svg>
           ${t('settings.restartGuideBtn')}
         </button>
       </div>`;

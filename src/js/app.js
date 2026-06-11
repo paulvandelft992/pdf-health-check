@@ -664,17 +664,23 @@ const App = (() => {
       document.body.classList.add(p === 'darwin' ? 'platform-mac' : 'platform-' + p);
     }
 
-    // Load saved settings and initialise API
+    // Load saved settings and initialise API.
+    // APP_CONFIG (app-config.js, gitignored) provides hardcoded backend credentials
+    // so users never need to configure the connection themselves.
     let settings = {};
     if (window.electronAPI) {
       settings = await window.electronAPI.getSettings() || {};
     }
-    if (settings.backendUrl) {
-      API.init(settings.backendUrl, settings.apiKey || '');
-      // Verify identity + admin status from the server (fire early so views have it)
+    const backendUrl = (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.backendUrl)
+      ? APP_CONFIG.backendUrl
+      : (settings.backendUrl || '');
+    const apiKey = (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.apiKey)
+      ? APP_CONFIG.apiKey
+      : (settings.apiKey || '');
+    if (backendUrl) {
+      API.init(backendUrl, apiKey);
       _loadAdminStatus();
     }
-    // Pre-configure Yukon from saved settings so the chat is ready immediately
     if (typeof Yukon !== 'undefined') Yukon.configure(settings);
 
     // Initialise header upload indicator
@@ -682,7 +688,7 @@ const App = (() => {
 
     // Clean up health checks that were left in 'pending' status from a previous
     // session (e.g. the app was quit while a crawl was running).
-    if (settings.backendUrl && settings.apiKey) {
+    if (backendUrl && apiKey) {
       _cleanupOrphanedHealthChecks();
     }
 
@@ -826,7 +832,7 @@ const App = (() => {
 
     // Start on dashboard (or settings if no backend configured)
     // If profile hasn't been set up yet, prompt the user before loading data.
-    if (!settings.backendUrl) {
+    if (!backendUrl) {
       navigate('settings');
       Toast.show(t('toast.configureBackend'), 'info', 5000);
     } else if (!UserProfile.isConfigured()) {

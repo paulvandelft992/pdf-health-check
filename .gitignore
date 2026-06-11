@@ -12,6 +12,8 @@ backend/config/config.php
 backend/config/*.local.php
 *.env
 .env
+.env.build
+src/js/app-config.js
 
 # Logs
 *.log

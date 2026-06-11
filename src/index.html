@@ -32,10 +32,13 @@
 
     <div class="topbar-right">
       <button class="topbar-feedback-btn" id="feedbackBtn" title="Share feedback or report a bug">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-          <path d="M2 2h12a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H5l-3 3V3a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
-          <path d="M5 6h6M5 9h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
-        </svg>
+        <svg width="15" height="15" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M6.25 19C6.15039 19 6.05078 18.9805 5.95605 18.9404C5.67968 18.8223 5.5 18.5508 5.5 18.25V15H4.75C2.68262 15 1 13.3174 1 11.25V5.75C1 3.68262 2.68262 2 4.75 2H15.25C17.3174 2 19 3.68262 19 5.75V11.25C19 13.3174 17.3174 15 15.25 15H10.707L6.77051 18.79C6.62793 18.9277 6.44043 19 6.25 19ZM4.75 3.5C3.50977 3.5 2.5 4.50977 2.5 5.75V11.25C2.5 12.4902 3.50977 13.5 4.75 13.5H6.25C6.66406 13.5 7 13.8359 7 14.25V16.4863L9.88379 13.71C10.0234 13.5752 10.21 13.5 10.4043 13.5H15.25C16.4902 13.5 17.5 12.4902 17.5 11.25V5.75C17.5 4.50977 16.4902 3.5 15.25 3.5H4.75Z" fill="currentColor"/>
+<path d="M5.5 10C6.32843 10 7 9.32843 7 8.5C7 7.67157 6.32843 7 5.5 7C4.67157 7 4 7.67157 4 8.5C4 9.32843 4.67157 10 5.5 10Z" fill="currentColor"/>
+<path d="M10 10C10.8284 10 11.5 9.32843 11.5 8.5C11.5 7.67157 10.8284 7 10 7C9.17157 7 8.5 7.67157 8.5 8.5C8.5 9.32843 9.17157 10 10 10Z" fill="currentColor"/>
+<path d="M14.5 10C15.3284 10 16 9.32843 16 8.5C16 7.67157 15.3284 7 14.5 7C13.6716 7 13 7.67157 13 8.5C13 9.32843 13.6716 10 14.5 10Z" fill="currentColor"/>
+</svg>
+
         Feedback
       </button>
       <!-- User / Preferences menu -->
@@ -198,6 +201,7 @@
   </div>
 
   <!-- Scripts -->
+  <script src="js/app-config.js"></script>
   <script>
     fetch('releases.json').then(r => r.json()).then(d => { window.__RELEASES__ = d; }).catch(() => {});
   </script>

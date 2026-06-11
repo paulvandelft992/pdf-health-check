@@ -5,7 +5,7 @@ I18n.register('nl', {
   'nav.customers':     'Klanten',
   'nav.healthchecks':  'Health check',
   'nav.reports':       'Rapporten',
-  'nav.settings':      'Verbinding',
+  'nav.settings':      'Voorkeuren',
 
   // ── Algemene acties ───────────────────────────────────────────────────────
   'common.save':           'Opslaan',

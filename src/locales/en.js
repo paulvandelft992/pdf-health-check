@@ -5,7 +5,7 @@ I18n.register('en', {
   'nav.customers':     'Customers',
   'nav.healthchecks':  'Health Checks',
   'nav.reports':       'Reports',
-  'nav.settings':      'Connection',
+  'nav.settings':      'Settings',
 
   // ── Common actions ────────────────────────────────────────────────────────
   'common.save':           'Save',
