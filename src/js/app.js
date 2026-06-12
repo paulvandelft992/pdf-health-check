@@ -945,6 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('[App] Boot error:', err);
   });
   _initUpdateListeners();
+  _initMenuListeners();
 });
 
 /* ── Auto-update listeners ───────────────────────────────────────────────────── */
@@ -972,6 +973,39 @@ function _initUpdateListeners() {
     document.getElementById('updateBarInstall').onclick  = () => window.electronAPI.updateInstallNow();
     document.getElementById('updateBarDismiss').onclick  = () => bar.remove();
     document.getElementById('updateBarWhatsNew').onclick = () => { _showWhatsNewModal(info.version); };
+  });
+}
+
+/* ── OS menu-bar action listener ─────────────────────────────────────────────── */
+function _initMenuListeners() {
+  if (!window.electronAPI?.onMenuAction) return;
+
+  window.electronAPI.onMenuAction((action) => {
+    // toast:message shorthand used by Check for Updates
+    if (action.startsWith('toast:')) {
+      Toast.show(action.slice(6), 'info', 4000);
+      return;
+    }
+
+    switch (action) {
+      case 'nav:dashboard':       App.navigate('dashboard');      break;
+      case 'nav:customers':       App.navigate('customers');      break;
+      case 'nav:healthchecks':    App.navigate('healthchecks');   break;
+      case 'nav:reports':         App.navigate('reports');        break;
+      case 'nav:executive':       App.navigate('exec');           break;
+      case 'nav:ai-chat':         App.navigate('healthchecks'); document.querySelector('[data-action="ai"]')?.click(); break;
+      case 'nav:search':          document.getElementById('globalSearchBtn')?.click(); break;
+      case 'nav:toggle-sidebar':  document.querySelector('.sidebar')?.classList.toggle('collapsed'); break;
+      case 'nav:settings':        SettingsModal.open('connection'); break;
+      case 'nav:shortcuts':       SettingsModal.open('shortcuts'); break;
+      case 'nav:guide':           SettingsModal.open('guide');    break;
+      case 'nav:whats-new':       SettingsModal.open('whats-new'); break;
+      case 'nav:feedback':        _openFeedbackModal();           break;
+      case 'nav:new-healthcheck': App.navigate('healthchecks', { action: 'new' }); break;
+      case 'nav:new-customer':
+        if (typeof CustomersView !== 'undefined') CustomersView.openCustomerForm();
+        break;
+    }
   });
 }
 

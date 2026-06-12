@@ -248,6 +248,34 @@ const HealthCheckView = (() => {
     const vc     = document.getElementById('hcViewContainer');
     if (!vc) return;
 
+    // Show skeleton matching the current view mode
+    if (_hcView === 'table') {
+      vc.innerHTML = Array.from({ length: 6 }, () => `
+        <div class="skeleton-row">
+          <div class="sk-cell skeleton" style="width:32px;height:32px;border-radius:8px;flex-shrink:0"></div>
+          <div class="sk-cell skeleton" style="width:36%;flex-shrink:0"></div>
+          <div class="sk-cell skeleton" style="width:22%"></div>
+          <div class="sk-cell skeleton" style="width:14%"></div>
+          <div class="sk-cell skeleton" style="width:10%"></div>
+        </div>`).join('');
+    } else {
+      vc.innerHTML = `<div class="hc-card-grid">${Array.from({ length: 6 }, () => `
+        <div class="skeleton-card">
+          <div class="sk-header">
+            <div class="sk-icon skeleton"></div>
+            <div class="sk-lines">
+              <div class="sk-line skeleton w-3-4"></div>
+              <div class="sk-line skeleton w-1-2"></div>
+            </div>
+          </div>
+          <div class="sk-meta skeleton"></div>
+          <div class="sk-footer">
+            <div class="sk-badge skeleton"></div>
+            <div class="sk-badge skeleton" style="width:50px"></div>
+          </div>
+        </div>`).join('')}</div>`;
+    }
+
     try {
       const params = {};
       if (status)  params.status      = status;
@@ -259,7 +287,10 @@ const HealthCheckView = (() => {
 
       if (!hcs.length) {
         vc.innerHTML = `<div class="empty-state" style="padding:30px">
-          <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/></svg>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M19.2114 8.89648C18.7822 8.32714 18.1275 8 17.4141 8H6.65918C5.66162 8 4.77246 8.66992 4.49658 9.62891L2.84704 15.3657C2.643 15.2315 2.49999 15.0116 2.49999 14.75V4.25C2.49999 3.83691 2.83642 3.5 3.24999 3.5H6.81493C7.03319 3.5 7.24022 3.59473 7.38182 3.75684L9.08299 5.72559C9.51072 6.21778 10.1299 6.5 10.7822 6.5H16.9717C17.3857 6.5 17.7217 6.16406 17.7217 5.75C17.7217 5.33594 17.3857 5 16.9717 5H10.7822C10.5644 5 10.3579 4.90527 10.2163 4.74316L8.51512 2.77441C8.08739 2.28222 7.46776 2 6.81492 2H3.24998C2.00926 2 0.999985 3.00977 0.999985 4.25V14.75C0.999985 15.9902 2.00926 17 3.24998 17C3.27348 17 3.29325 16.9888 3.3162 16.9866C3.33598 16.9883 3.35307 17 3.37302 17H16.1206C17.1186 17 18.0078 16.3301 18.2827 15.3711L19.5766 10.8711C19.7739 10.1865 19.6406 9.46679 19.2114 8.89648ZM18.1353 10.457L16.8413 14.957C16.7495 15.2764 16.4531 15.5 16.1206 15.5H4.36914L5.93799 10.043C6.03028 9.72363 6.32666 9.5 6.65918 9.5H17.4141C17.6519 9.5 17.8701 9.60938 18.0132 9.79883C18.1563 9.98926 18.2007 10.2285 18.1353 10.457Z" fill="currentColor"/>
+</svg>
+
           <h3>${t('hc.noFound')}</h3><p>${t('hc.noFoundSub')}</p>
         </div>`;
         _lastHCs = [];
@@ -321,7 +352,7 @@ const HealthCheckView = (() => {
           <!-- Upload section -->
           <div id="addUploadSection">
             <div id="addDropZone" class="add-drop-zone">
-              <div style="font-size:32px;margin-bottom:8px">📄</div>
+              <div style="font-size:32px;margin-bottom:8px"></div>
               <div class="add-drop-hint">${t('addPdfs.dropHint')} <span class="add-browse-link" id="addBrowseLink">${t('addPdfs.browseLink')}</span></div>
               <div class="add-drop-size-hint">${t('addPdfs.dropSizeHint')}</div>
             </div>
@@ -338,7 +369,7 @@ const HealthCheckView = (() => {
             <div style="margin-bottom:14px">
               <label class="add-field-label" id="addCrawlLabel">${t('addPdfs.domainsLabel')} <span class="add-required">*</span></label>
               <textarea id="addCrawlInput" class="form-input crawl-domains-input"
-                placeholder="philips.com&#10;*.philips.com" rows="4" spellcheck="false"
+                placeholder="company.com&#10;*.company.com" rows="4" spellcheck="false"
                 style="font-size:13px;width:100%;box-sizing:border-box"></textarea>
               <div id="addCrawlHint" class="add-crawl-hint">
                 One domain per line. Use <code class="add-code">*.domain.com</code> to include all subdomains.
@@ -388,11 +419,11 @@ const HealthCheckView = (() => {
         b.classList.toggle('active', b.dataset.crawlMode === mode));
       if (mode === 'search') {
         label.innerHTML   = `${t('addPdfs.searchLabel')} <span>*</span>`;
-        input.placeholder = 'philips.com\ncompany.com';
+        input.placeholder = 'company.com\ncompany.com';
         hint.textContent  = 'One domain per line — site: and filetype:pdf are added automatically.';
       } else {
         label.innerHTML   = `${t('addPdfs.domainsLabel')} <span>*</span>`;
-        input.placeholder = 'philips.com\n*.philips.com';
+        input.placeholder = 'company.com\n*.company.com';
         hint.innerHTML    = `One domain per line. Use <code class="add-code">*.domain.com</code> for all subdomains.`;
       }
     }
@@ -603,11 +634,14 @@ const HealthCheckView = (() => {
             <div id="uploadSection" style="padding:20px">
               <div class="upload-zone" id="uploadZone">
                 <div class="upload-icon">
-                  <svg viewBox="0 0 40 40" fill="none"><rect x="8" y="4" width="24" height="32" rx="3" stroke="currentColor" stroke-width="2"/><path d="M14 16h12M14 21h12M14 26h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M28 4v10h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg width="51" height="43" viewBox="0 0 76 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 53C3.10457 53 4 53.8954 4 55V58.5C4 59.3284 4.67157 60 5.5 60H9C10.1046 60 11 60.8954 11 62C11 63.1046 10.1046 64 9 64H5.5C2.46243 64 0 61.5376 0 58.5V55C0 53.8954 0.895431 53 2 53ZM24.5 60C25.6046 60 26.5 60.8954 26.5 62C26.5 63.1046 25.6046 64 24.5 64H17C15.8954 64 15 63.1046 15 62C15 60.8954 15.8954 60 17 60H24.5ZM41.5 60C42.6046 60 43.5 60.8954 43.5 62C43.5 63.1046 42.6046 64 41.5 64H34C32.8954 64 32 63.1046 32 62C32 60.8954 32.8954 60 34 60H41.5ZM58.5 60C59.6046 60 60.5 60.8954 60.5 62C60.5 63.1046 59.6046 64 58.5 64H51C49.8954 64 49 63.1046 49 62C49 60.8954 49.8954 60 51 60H58.5ZM74 53C75.1046 53 76 53.8954 76 55V58.5C76 61.5376 73.5376 64 70.5 64H67C65.8954 64 65 63.1046 65 62C65 60.8954 65.8954 60 67 60H70.5C71.3284 60 72 59.3284 72 58.5V55C72 53.8954 72.8954 53 74 53ZM37.5586 0C39.5319 0 41.4273 0.779115 42.8262 2.16992L57.8125 17.0703C59.2118 18.4615 60 20.3508 60 22.3232V43.5771C59.9999 47.6874 56.6517 50.9998 52.5459 51H23.4541C19.3483 50.9998 16.0001 47.6874 16 43.5771V7.42285C16.0001 3.31256 19.3483 0.000238743 23.4541 0H37.5586ZM74 39.5C75.1046 39.5 76 40.3954 76 41.5V49C76 50.1046 75.1046 51 74 51C72.8954 51 72 50.1046 72 49V41.5C72 40.3954 72.8954 39.5 74 39.5ZM2 39C3.10457 39 4 39.8954 4 41V48.5C4 49.6046 3.10457 50.5 2 50.5C0.89543 50.5 0 49.6046 0 48.5V41C0 39.8954 0.89543 39 2 39ZM23.4541 4C21.5356 4.00024 20.0001 5.54348 20 7.42285V43.5771C20.0001 45.4565 21.5356 46.9998 23.4541 47H52.5459C54.4644 46.9998 55.9999 45.4565 56 43.5771V22.3232C56 21.4192 55.6387 20.5501 54.9922 19.9072L40.0059 5.00684C39.3589 4.36359 38.4785 4 37.5586 4H23.4541ZM37.0479 16C38.1523 16.0024 39.0461 16.8996 39.0439 18.0039L39.0088 33.7852L44.2227 29.4609C45.0727 28.7558 46.3338 28.8728 47.0391 29.7227C47.7442 30.5727 47.6272 31.8338 46.7773 32.5391L38.3389 39.5391C37.9599 39.8534 37.4936 40.0054 37.0293 39.998C37.0182 39.9982 37.0072 40 36.9961 40C36.376 39.9986 35.8221 39.7153 35.4561 39.2715L27.2344 32.5488C26.3793 31.8498 26.2524 30.5895 26.9512 29.7344C27.6502 28.8793 28.9105 28.7524 29.7656 29.4512L35.0088 33.7373L35.0439 17.9961C35.0464 16.8916 35.9434 15.9977 37.0479 16ZM9 25C10.1046 25 11 25.8954 11 27C11 28.1046 10.1046 29 9 29H5.5C4.67157 29 4 29.6716 4 30.5V34C4 35.1046 3.10457 36 2 36C0.895431 36 0 35.1046 0 34V30.5C0 27.4624 2.46243 25 5.5 25H9ZM70.5 25C73.5376 25 76 27.4624 76 30.5V34C76 35.1046 75.1046 36 74 36C72.8954 36 72 35.1046 72 34V30.5C72 29.6716 71.3284 29 70.5 29H67C65.8954 29 65 28.1046 65 27C65 25.8954 65.8954 25 67 25H70.5Z" fill="currentColor"/>
+                </svg>
+  
                 </div>
                 <h3>${t('hcNew.dropZoneTitle')}</h3>
-                <p>${t('hcNew.dropZoneOr')} <span class="browse-link" id="browseLink">${t('hcNew.browseLink')}</span></p>
-                <p style="margin-top:6px">${t('hcNew.dropZoneHint')}</p>
+                <p><span class="browse-link" id="browseLink">${t('hcNew.browseLink')}</span></p>
+                <p style="margin-top:16px">${t('hcNew.dropZoneHint')}</p>
               </div>
               <input type="file" id="fileInput" accept=".pdf" multiple style="display:none">
             </div>
@@ -620,13 +654,13 @@ const HealthCheckView = (() => {
                 <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-500);margin-bottom:8px">${t('hcNew.discoveryMethod')}</div>
                 <div style="display:flex;gap:8px">
                   <button class="crawl-mode-btn active" data-crawl-mode="crawl"
-                    style="padding:8px 14px;font-size:12px;font-weight:500;background:var(--accent);color:#fff;border:2px solid var(--accent);border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:6px;line-height:1.3;text-align:left">
-                    <svg viewBox="0 0 14 14" fill="none" style="width:13px;height:13px;flex-shrink:0"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 1.5c0 0-2.5 1.5-2.5 5.5s2.5 5.5 2.5 5.5M7 1.5c0 0 2.5 1.5 2.5 5.5S7 12.5 7 12.5M1.5 7h11" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
+                    style="padding:8px 14px;font-size:12px;font-weight:500;background:var(--blue-default);color:#fff;border:2px solid var(--blue-default);border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:6px;line-height:1.3;text-align:left">
+                    <svg viewBox="0 0 14 14" fill="none" style="width:20px;height:20px;flex-shrink:0"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M7 1.5c0 0-2.5 1.5-2.5 5.5s2.5 5.5 2.5 5.5M7 1.5c0 0 2.5 1.5 2.5 5.5S7 12.5 7 12.5M1.5 7h11" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
                     <span><strong>${t('hcNew.pageCrawl')}</strong><br><span style="font-weight:400;font-size:11px;opacity:.85">${t('hcNew.pageCrawlSub')}</span></span>
                   </button>
                   <button class="crawl-mode-btn" data-crawl-mode="search"
                     style="padding:8px 14px;font-size:12px;font-weight:500;background:none;color:var(--gray-700);border:2px solid var(--gray-200);border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:6px;line-height:1.3;text-align:left">
-                    <svg viewBox="0 0 14 14" fill="none" style="width:13px;height:13px;flex-shrink:0"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.3"/><path d="M9.5 9.5L12.5 12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                    <svg viewBox="0 0 14 14" fill="none" style="width:20px;height:20px;flex-shrink:0"><circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.3"/><path d="M9.5 9.5L12.5 12.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
                     <span><strong>${t('hcNew.searchEngine')}</strong><br><span style="font-weight:400;font-size:11px;opacity:.75">${t('hcNew.searchEngineSub')}</span></span>
                   </button>
                 </div>
@@ -635,7 +669,7 @@ const HealthCheckView = (() => {
               <div class="form-group">
                 <label class="form-label" id="crawlInputLabel">${t('hcNew.domainsLabel')} <span>*</span></label>
                 <textarea id="crawlInput" class="form-input crawl-domains-input"
-                  placeholder="philips.com&#10;*.philips.com&#10;docs.company.com"
+                  placeholder="company.com&#10;*.company.com&#10;docs.company.com"
                   rows="5" spellcheck="false"></textarea>
                 <div id="crawlInputHint" style="font-size:11px;color:var(--gray-500);margin-top:5px;line-height:1.6">
                   One domain per line. Use <code style="background:var(--gray-100);padding:1px 4px;border-radius:3px">*.domain.com</code>
@@ -682,17 +716,17 @@ const HealthCheckView = (() => {
       document.querySelectorAll('.crawl-mode-btn').forEach(b => {
         const active = b.dataset.crawlMode === mode;
         b.classList.toggle('active', active);
-        b.style.background   = active ? 'var(--accent)' : 'none';
+        b.style.background   = active ? 'var(--blue-default)' : 'none';
         b.style.color        = active ? '#fff' : 'var(--gray-700)';
         b.style.borderColor  = active ? 'var(--accent)' : 'var(--gray-200)';
       });
       if (mode === 'search') {
         label.innerHTML   = `${t('hcNew.searchDomainsLabel')} <span>*</span>`;
-        input.placeholder = 'philips.com\ncompany.com';
+        input.placeholder = 'company.com\ncompany.com';
         hint.innerHTML    = 'One domain per line. <code style="background:var(--gray-100);padding:1px 4px;border-radius:3px">*.domain.com</code> wildcards are supported. <code style="background:var(--gray-100);padding:1px 4px;border-radius:3px">site:</code> and <code style="background:var(--gray-100);padding:1px 4px;border-radius:3px">filetype:pdf</code> are added automatically.';
       } else {
         label.innerHTML  = `${t('hcNew.domainsLabel')} <span>*</span>`;
-        input.placeholder = 'philips.com\n*.philips.com\ndocs.company.com';
+        input.placeholder = 'company.com\n*.company.com\ndocs.company.com';
         hint.innerHTML   = 'One domain per line. Use <code style="background:var(--gray-100);padding:1px 4px;border-radius:3px">*.domain.com</code> to include all subdomains. Sitemaps are checked automatically.';
       }
     }

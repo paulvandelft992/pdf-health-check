@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateInstallNow:      ()       => ipcRenderer.invoke('update-install-now'),
   onUpdateAvailable:     (cb)     => ipcRenderer.on('update-available',  (_e, info) => cb(info)),
   onUpdateDownloaded:    (cb)     => ipcRenderer.on('update-downloaded', (_e, info) => cb(info)),
+  onMenuAction:          (cb)     => ipcRenderer.on('menu-action', (_e, action) => cb(action)),
   platform:   process.platform,
   appVersion: process.env.npm_package_version || require('../package.json').version,
 });

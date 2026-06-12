@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, Menu } = require('electron');
 const path    = require('path');
 const fs      = require('fs');
 const https   = require('https');
@@ -48,6 +48,100 @@ function parsePdfDate(raw) {
 
 let mainWindow;
 
+function _send(action) {
+  if (mainWindow) mainWindow.webContents.send('menu-action', action);
+}
+
+function _buildMenu() {
+  const isMac = process.platform === 'darwin';
+  const template = [
+    // ── macOS app menu ──────────────────────────────────────────────────────
+    ...(isMac ? [{
+      label: app.name,
+      submenu: [
+        { role: 'about' },
+        {
+          label: 'Check for Updates…',
+          click() {
+            if (!app.isPackaged) {
+              _send('toast:No updates in development mode');
+              return;
+            }
+            autoUpdater.checkForUpdates().then(result => {
+              if (!result || !result.updateInfo) {
+                _send('toast:You are on the latest version');
+              }
+            }).catch(() => _send('toast:Could not check for updates'));
+          },
+        },
+        { type: 'separator' },
+        { label: 'Settings', accelerator: 'CmdOrCtrl+,', click() { _send('nav:settings'); } },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' },
+      ],
+    }] : []),
+
+    // ── File ────────────────────────────────────────────────────────────────
+    {
+      label: 'File',
+      submenu: [
+        { label: 'New Health Check', accelerator: 'CmdOrCtrl+Shift+H', click() { _send('nav:new-healthcheck'); } },
+        { label: 'New Customer',     accelerator: 'CmdOrCtrl+Shift+C', click() { _send('nav:new-customer'); } },
+        { type: 'separator' },
+        isMac ? { role: 'close' } : { role: 'quit' },
+      ],
+    },
+
+    // ── Go ──────────────────────────────────────────────────────────────────
+    {
+      label: 'Go',
+      submenu: [
+        { label: 'Dashboard',     accelerator: 'CmdOrCtrl+1', click() { _send('nav:dashboard'); } },
+        { label: 'Customers',     accelerator: 'CmdOrCtrl+2', click() { _send('nav:customers'); } },
+        { label: 'Health Checks', accelerator: 'CmdOrCtrl+3', click() { _send('nav:healthchecks'); } },
+        { label: 'Reports',       accelerator: 'CmdOrCtrl+4', click() { _send('nav:reports'); } },
+        { label: 'Executive',     accelerator: 'CmdOrCtrl+5', click() { _send('nav:executive'); } },
+        { type: 'separator' },
+        { label: 'AI Chat',       accelerator: 'CmdOrCtrl+Shift+A', click() { _send('nav:ai-chat'); } },
+        { type: 'separator' },
+        { label: 'Search',        accelerator: 'CmdOrCtrl+K', click() { _send('nav:search'); } },
+        { label: 'Toggle Sidebar',accelerator: 'Backslash',   click() { _send('nav:toggle-sidebar'); } },
+      ],
+    },
+
+    // ── Window ──────────────────────────────────────────────────────────────
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'reload' },
+        { type: 'separator' },
+        { role: 'minimize' },
+        { role: 'zoom' },
+        ...(isMac ? [{ type: 'separator' }, { role: 'front' }] : [{ role: 'close' }]),
+      ],
+    },
+
+    // ── Help ────────────────────────────────────────────────────────────────
+    {
+      label: 'Help',
+      submenu: [
+        { label: 'Keyboard Shortcuts', accelerator: 'Shift+/', click() { _send('nav:shortcuts'); } },
+        { type: 'separator' },
+        { label: 'Technical Guide',    click() { _send('nav:guide'); } },
+        { label: "What's New",         click() { _send('nav:whats-new'); } },
+        { type: 'separator' },
+        { label: 'Send Feedback',      click() { _send('nav:feedback'); } },
+      ],
+    },
+  ];
+
+  return Menu.buildFromTemplate(template);
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -72,6 +166,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(_buildMenu());
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
