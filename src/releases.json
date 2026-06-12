@@ -24,5 +24,25 @@
       "Minor UI updates",
       "Bug fixes"
     ]
+  },
+  {
+    "version": "1.2.0",
+    "date": "2026-06-12",
+    "tag": "Update",
+    "notes": [
+      "Skeleton loading for larger tables",
+      "Native keyboard shortcuts in the app menu",
+      "Minor UI updates",
+      "Bug fixes"
+    ]
+  }
+  ,
+  {
+    "version": "1.2.1",
+    "date": "2026-06-12",
+    "tag": "Update",
+    "notes": [
+      "Bug fixed that caused auto update to fail"
+    ]
   }
 ]

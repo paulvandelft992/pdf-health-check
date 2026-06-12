@@ -1,6 +1,6 @@
 {
   "name": "pdf-health-check",
-  "version": "1.1.0",
+  "version": "1.2.1",
   "description": "PDF Health Check App using Adobe PDF Services API",
   "main": "electron/main.js",
   "scripts": {
@@ -8,7 +8,8 @@
     "build:mac": "electron-builder --mac",
     "build:win": "electron-builder --win",
     "build:all": "electron-builder --mac --win",
-    "release": "electron-builder --mac --publish always"
+    "release": "electron-builder --mac --publish always",
+    "release:win": "electron-builder --win --publish always"
   },
   "dependencies": {
     "electron-updater": "^6.3.4"
@@ -27,8 +28,7 @@
     "publish": {
       "provider": "github",
       "owner": "paulvandelft992",
-      "repo": "pdf-health-check",
-      "private": true
+      "repo": "pdf-health-check"
     },
     "mac": {
       "category": "public.app-category.productivity",
