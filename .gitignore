@@ -26,3 +26,4 @@ npm-debug.log*
 .env.build
 dist/
 node_modules/
+*.certSigningRequest
