@@ -40,7 +40,7 @@
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "notarize": {
-        "keychainProfile": "PDF-Health-Check"
+        "teamId": "F5HD4RNX7P"
       },
       "entitlements": "electron/entitlements.mac.plist",
       "entitlementsInherit": "electron/entitlements.mac.plist",
