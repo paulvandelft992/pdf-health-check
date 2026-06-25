@@ -8,7 +8,7 @@ const { notarize } = require('@electron/notarize');
  * Required env vars:
  *   APPLE_ID           — your Apple ID email (e.g. paul@example.com)
  *   APPLE_APP_PASSWORD — app-specific password from appleid.apple.com
- *   APPLE_TEAM_ID      — your 10-char team ID (59X6TZYA74)
+ *   APPLE_TEAM_ID      — your 10-char team ID (F5HD4RNX7P)
  */
 exports.default = async function notarizing(context) {
   if (context.electronPlatformName !== 'darwin') return;
