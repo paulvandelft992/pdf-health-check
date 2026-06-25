@@ -567,6 +567,9 @@ const DashboardView = (() => {
 
     // ── Recent health checks table ────────────────────────────────────
     const tbody = document.getElementById('recentHcBody');
+    // Render custom pinned report widgets (async, non-blocking)
+    _renderDashboardWidgets();
+
     if (!recent.data || !recent.data.length) {
       tbody.innerHTML = `<tr><td colspan="7">
         <div class="empty-state" style="padding:28px">
@@ -591,6 +594,370 @@ const DashboardView = (() => {
           <td><button class="btn btn-ghost btn-sm">${t('common.viewArrow')}</button></td>
         </tr>`).join('');
     }
+  }
+
+  // ── Custom dashboard widgets ───────────────────────────────────────────────
+  async function _renderDashboardWidgets() {
+    const settings = await window.electronAPI?.getSettings?.() || {};
+    const widgets  = Array.isArray(settings.dashboardWidgets) ? settings.dashboardWidgets : [];
+
+    const content = document.getElementById('dashContent');
+    if (!content) return;
+
+    // Remove previous section if re-rendering
+    document.getElementById('dashWidgetsSection')?.remove();
+
+    const section = document.createElement('div');
+    section.id    = 'dashWidgetsSection';
+    section.innerHTML = `
+      <div class="dash-widgets-header">
+        <h2 class="dash-widgets-title">${t('dashboard.pinnedReports')}</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-primary btn-sm" id="dashAddReport">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style="margin-right:5px"><path d="M8 1v14M1 8h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>${t('rb.newReport')}
+          </button>
+          <button class="btn btn-ghost btn-sm" id="dashManageWidgets">${t('dashboard.manageWidgets')}</button>
+        </div>
+      </div>
+      <div class="dash-widgets-grid" id="dashWidgetsGrid">
+        ${widgets.map(w => _widgetCardHtml(w)).join('')}
+      </div>`;
+    content.appendChild(section);
+
+    // Wire "Add Report" button
+    document.getElementById('dashAddReport').onclick  = () => _showAddReportPicker();
+    document.getElementById('dashManageWidgets').onclick = () => App.navigate('report-builder');
+
+    _wireWidgetControls(section, widgets);
+
+    // Run each widget's report
+    await Promise.all(widgets.map(w => _runWidget(w)));
+  }
+
+  function _widgetCardHtml(w) {
+    const colSpan = w.width  || 1;
+    const bodyH   = w.height || 240;
+    return `
+      <div class="dash-widget-card" id="dw_${w.id}" data-width="${colSpan}" style="grid-column:span ${colSpan}">
+        <div class="dash-widget-header">
+          <span class="dash-widget-name" title="${_escHtml(w.name)}">${_escHtml(w.name)}</span>
+          <div class="dash-widget-actions">
+            <button class="btn btn-ghost btn-sm dash-widget-width" data-id="${w.id}" title="${t('dashboard.widthToggle')||'Toggle width'}">${colSpan === 1 ? '⟷' : colSpan === 2 ? '⟺' : '▬'}</button>
+            <button class="btn btn-ghost btn-sm dash-widget-move" data-id="${w.id}" data-dir="up"   title="Move up">↑</button>
+            <button class="btn btn-ghost btn-sm dash-widget-move" data-id="${w.id}" data-dir="down" title="Move down">↓</button>
+            <button class="btn btn-ghost btn-sm dash-widget-unpin" data-id="${w.id}" title="Unpin">×</button>
+          </div>
+        </div>
+        <div class="dash-widget-body" id="dwb_${w.id}" style="height:${bodyH}px">
+          <div class="loading-spinner"></div>
+        </div>
+        <div class="dash-widget-resize-handle" data-id="${w.id}" title="Drag to resize"></div>
+      </div>`;
+  }
+
+  function _wireWidgetControls(section, widgets) {
+    // Unpin
+    section.querySelectorAll('.dash-widget-unpin').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const s  = await window.electronAPI?.getSettings?.() || {};
+        const ws = (s.dashboardWidgets || []).filter(w => w.id !== btn.dataset.id);
+        await window.electronAPI?.saveSettings?.({ ...s, dashboardWidgets: ws });
+        document.getElementById(`dw_${btn.dataset.id}`)?.remove();
+        if (!ws.length) section.remove();
+      });
+    });
+
+    // Move up/down
+    section.querySelectorAll('.dash-widget-move').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const s   = await window.electronAPI?.getSettings?.() || {};
+        const ws  = [...(s.dashboardWidgets || [])];
+        const idx = ws.findIndex(w => w.id === btn.dataset.id);
+        if (idx < 0) return;
+        const target = btn.dataset.dir === 'up' ? idx - 1 : idx + 1;
+        if (target < 0 || target >= ws.length) return;
+        [ws[idx], ws[target]] = [ws[target], ws[idx]];
+        ws.forEach((w, i) => { w.position = i; });
+        await window.electronAPI?.saveSettings?.({ ...s, dashboardWidgets: ws });
+        section.remove();
+        _renderDashboardWidgets();
+      });
+    });
+
+    // Width toggle (1 → 2 → 3 → 1)
+    section.querySelectorAll('.dash-widget-width').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const s   = await window.electronAPI?.getSettings?.() || {};
+        const ws  = [...(s.dashboardWidgets || [])];
+        const idx = ws.findIndex(w => w.id === btn.dataset.id);
+        if (idx < 0) return;
+        const cur = ws[idx].width || 1;
+        ws[idx].width = cur >= 3 ? 1 : cur + 1;
+        await window.electronAPI?.saveSettings?.({ ...s, dashboardWidgets: ws });
+        section.remove();
+        _renderDashboardWidgets();
+      });
+    });
+
+    // Height drag-to-resize
+    section.querySelectorAll('.dash-widget-resize-handle').forEach(handle => {
+      handle.addEventListener('mousedown', e => {
+        e.preventDefault();
+        const id   = handle.dataset.id;
+        const body = document.getElementById(`dwb_${id}`);
+        if (!body) return;
+        const startY = e.clientY;
+        const startH = body.offsetHeight;
+
+        const onMove = e => {
+          const newH = Math.max(120, startH + e.clientY - startY);
+          body.style.height = newH + 'px';
+          // Resize Chart.js instance if present
+          const canvas = body.querySelector('canvas');
+          if (canvas) Chart.getChart(canvas)?.resize();
+        };
+        const onUp = async () => {
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+          const finalH = body.offsetHeight;
+          const s  = await window.electronAPI?.getSettings?.() || {};
+          const ws = (s.dashboardWidgets || []).map(w =>
+            w.id === id ? { ...w, height: finalH } : w
+          );
+          await window.electronAPI?.saveSettings?.({ ...s, dashboardWidgets: ws });
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
+    });
+  }
+
+  async function _showAddReportPicker() {
+    // Remove any existing picker
+    document.getElementById('dashAddReportModal')?.remove();
+
+    let reports = [];
+    try {
+      const res = await API.reportBuilder.list();
+      reports = res.data || [];
+    } catch (e) {
+      Toast.show(e.message, 'error');
+      return;
+    }
+
+    const settings = await window.electronAPI?.getSettings?.() || {};
+    const pinned   = new Set((settings.dashboardWidgets || []).map(w => String(w.reportId)));
+
+    const overlay = document.createElement('div');
+    overlay.id    = 'dashAddReportModal';
+    overlay.className = 'dash-picker-overlay';
+    overlay.innerHTML = `
+      <div class="dash-picker-modal">
+        <div class="dash-picker-header">
+          <span style="font-size:15px;font-weight:700">${t('dashboard.addReport')||'Add Report to Dashboard'}</span>
+          <button class="btn btn-ghost btn-sm" id="dashPickerClose">✕</button>
+        </div>
+        <div class="dash-picker-list">
+          ${reports.length ? reports.map(r => `
+            <div class="dash-picker-row">
+              <span class="dash-picker-name">${_escHtml(r.name)}</span>
+              <button class="btn ${pinned.has(String(r.id)) ? 'btn-ghost' : 'btn-primary'} btn-sm dash-picker-pin"
+                data-id="${r.id}" data-name="${_escHtml(r.name)}"
+                ${pinned.has(String(r.id)) ? 'disabled' : ''}>
+                ${pinned.has(String(r.id)) ? '✓ Pinned' : '+ Pin'}
+              </button>
+            </div>`).join('')
+          : `<div style="padding:24px;text-align:center;color:var(--gray-400);font-size:13px">${t('rb.noReports')}</div>`}
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    document.getElementById('dashPickerClose').onclick = () => overlay.remove();
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+    overlay.querySelectorAll('.dash-picker-pin').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const reportId = btn.dataset.id;
+        const name     = btn.dataset.name;
+        const s        = await window.electronAPI?.getSettings?.() || {};
+        const ws       = s.dashboardWidgets || [];
+        if (ws.some(w => String(w.reportId) === String(reportId))) return;
+
+        let reportConfig = null;
+        try {
+          const res = await API.reportBuilder.get(reportId);
+          reportConfig = res.data?.config;
+        } catch {}
+
+        const newWidget = {
+          id:       `dw_${Date.now()}`,
+          reportId: String(reportId),
+          name,
+          config:   reportConfig,
+          position: ws.length,
+          width:    1,
+          height:   240,
+        };
+        const updatedWs = [...ws, newWidget];
+        await window.electronAPI?.saveSettings?.({ ...s, dashboardWidgets: updatedWs });
+
+        btn.textContent = '✓ Pinned';
+        btn.disabled    = true;
+        btn.className   = 'btn btn-ghost btn-sm dash-picker-pin';
+
+        Toast.show(`"${name}" ${t('rb.pinnedSuccess','').split('"')[2] || 'added to dashboard'}`, 'success');
+
+        // Re-render widgets section
+        document.getElementById('dashWidgetsSection')?.remove();
+        _renderDashboardWidgets();
+      });
+    });
+  }
+
+  async function _runWidget(widget) {
+    const body = document.getElementById(`dwb_${widget.id}`);
+    if (!body) return;
+    try {
+      const res  = await API.reportBuilder.run(widget.config);
+      const data = res.data;
+      _renderWidgetResult(body, data, widget);
+    } catch (e) {
+      body.innerHTML = `<div style="font-size:12px;color:var(--gray-400);padding:12px 0">${_escHtml(e.message)}</div>`;
+    }
+  }
+
+  function _renderWidgetResult(body, data, widget) {
+    if (!data.has_groups && data.metric_cards?.length) {
+      body.style.display = 'flex';
+      body.style.alignItems = 'center';
+      body.style.justifyContent = 'center';
+      body.innerHTML = `<div class="dash-widget-kpis">${data.metric_cards.map(c =>
+        `<div class="dash-widget-kpi"><div class="dash-widget-kpi-val">${c.value != null ? parseFloat(c.value).toLocaleString('en',{maximumFractionDigits:1}) + (c.unit||'') : '—'}</div><div class="dash-widget-kpi-lbl">${_escHtml(c.key.replace(/_/g,' '))}</div></div>`
+      ).join('')}</div>`;
+      return;
+    }
+
+    if (!data.labels?.length && !data.rows?.length) {
+      body.style.display = 'flex';
+      body.style.alignItems = 'center';
+      body.style.justifyContent = 'center';
+      body.innerHTML = `<div style="font-size:12px;color:var(--gray-400);padding:12px 0">${t('rb.noData')}</div>`;
+      return;
+    }
+
+    const viz = data.visualization || 'bar';
+
+    // Table
+    if (viz === 'table' || !data.has_groups) {
+      body.style.display = 'block';
+      body.style.overflowY = 'auto';
+      const metrics = data.metrics || [];
+      body.innerHTML = `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr>${data.has_groups ? `<th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--border)">Group</th>` : ''}
+          ${metrics.map(m => `<th style="text-align:right;padding:4px 8px;border-bottom:1px solid var(--border)">${_escHtml(m)}</th>`).join('')}
+        </tr></thead>
+        <tbody>${(data.rows || []).slice(0,8).map(r => `<tr>
+          ${data.has_groups ? `<td style="padding:3px 8px;border-bottom:1px solid var(--border)">${_escHtml(r.group_key??'—')}</td>` : ''}
+          ${metrics.map(m => `<td style="text-align:right;padding:3px 8px;border-bottom:1px solid var(--border)">${r[m]!=null?parseFloat(r[m]).toLocaleString('en',{maximumFractionDigits:1}):'—'}</td>`).join('')}
+        </tr>`).join('')}</tbody>
+      </table></div>`;
+      return;
+    }
+
+    // Chart
+    if (typeof Chart === 'undefined') {
+      body.innerHTML = `<div style="font-size:12px;color:var(--gray-400)">${t('rb.chartLibMissing')}</div>`;
+      return;
+    }
+
+    // Set up body for chart rendering (block layout, explicit height drives Chart.js dimensions)
+    body.style.display  = 'block';
+    body.style.padding  = '12px 16px';
+    body.innerHTML = '<canvas></canvas>';
+    const canvas = body.querySelector('canvas');
+    canvas.style.width  = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+
+    const colors  = (typeof Charts !== 'undefined' && Charts.CAT) ? Charts.CAT
+      : ['rgb(15,181,174)','rgb(64,70,202)','rgb(246,133,17)','rgb(222,61,130)',
+         'rgb(126,132,250)','rgb(20,122,243)','rgb(115,38,211)','rgb(232,198,0)'];
+    const isPie   = viz === 'pie' || viz === 'donut';
+    const clrs    = data.labels.map((_, i) => colors[i % colors.length]);
+
+    const chartType = viz === 'donut' ? 'doughnut'
+                    : viz === 'area'  ? 'line'
+                    : viz === 'line'  ? 'line'
+                    : isPie           ? 'pie'
+                    : 'bar';
+
+    new Chart(canvas, {
+      type: chartType,
+      data: {
+        labels: data.labels,
+        datasets: data.datasets.map((ds, di) => {
+          const baseClr = colors[di % colors.length];
+          const bgColor = isPie ? clrs
+            : viz === 'area'
+              ? (context) => {
+                  const chart = context.chart;
+                  const { ctx, chartArea } = chart;
+                  if (!chartArea) return baseClr.replace('rgb(','rgba(').replace(')',',0.35)');
+                  const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+                  gradient.addColorStop(0, baseClr.replace('rgb(','rgba(').replace(')', `,${data.datasets.length > 1 ? 0.22 : 0.40})`));
+                  gradient.addColorStop(1, baseClr.replace('rgb(','rgba(').replace(')' , ',0.02)'));
+                  return gradient;
+                }
+              : baseClr.replace('rgb(','rgba(').replace(')',',0.75)');
+          return {
+            label:           ds.field,
+            data:            ds.values,
+            backgroundColor: bgColor,
+            borderColor:     isPie ? clrs : baseClr,
+            borderWidth:     isPie ? 1 : 2,
+            fill:            viz === 'area',
+            tension:         0.35,
+            pointRadius:     viz === 'line' || viz === 'area' ? 3 : 0,
+            pointHoverRadius: viz === 'line' || viz === 'area' ? 5 : 0,
+            pointBackgroundColor: baseClr,
+          };
+        }),
+      },
+      options: {
+        responsive:          true,
+        maintainAspectRatio: false,
+        indexAxis: viz === 'bar_h' ? 'y' : 'x',
+        animation: { duration: 400 },
+        plugins: {
+          legend: {
+            display:  isPie || data.datasets.length > 1,
+            position: 'bottom',
+            labels:   { font: { size: 10 }, boxWidth: 10, padding: 8 },
+          },
+          tooltip: {
+            mode:      'index',
+            intersect: false,
+            callbacks: {
+              label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y?.toLocaleString('en', { maximumFractionDigits: 1 }) ?? ctx.parsed}`,
+            },
+          },
+        },
+        scales: isPie ? {} : {
+          x: {
+            grid:  { display: false },
+            ticks: { font: { size: 10 }, maxTicksLimit: 8, maxRotation: 30 },
+          },
+          y: {
+            grid:  { color: 'rgba(128,128,128,.12)' },
+            ticks: { font: { size: 10 } },
+          },
+        },
+      },
+    });
+  }
+
+  function _escHtml(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
   async function reload() {

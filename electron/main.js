@@ -104,7 +104,8 @@ function _buildMenu() {
         { label: 'Customers',     accelerator: 'CmdOrCtrl+2', click() { _send('nav:customers'); } },
         { label: 'Health Checks', accelerator: 'CmdOrCtrl+3', click() { _send('nav:healthchecks'); } },
         { label: 'Reports',       accelerator: 'CmdOrCtrl+4', click() { _send('nav:reports'); } },
-        { label: 'Executive',     accelerator: 'CmdOrCtrl+5', click() { _send('nav:executive'); } },
+        { label: 'Executive',       accelerator: 'CmdOrCtrl+5', click() { _send('nav:executive'); } },
+        { label: 'Report Builder',  accelerator: 'CmdOrCtrl+6', click() { _send('nav:report-builder'); } },
         { type: 'separator' },
         { label: 'AI Chat',       accelerator: 'CmdOrCtrl+Shift+A', click() { _send('nav:ai-chat'); } },
         { type: 'separator' },
@@ -124,6 +125,36 @@ function _buildMenu() {
         ...(isMac ? [{ type: 'separator' }, { role: 'front' }] : [{ role: 'close' }]),
       ],
     },
+
+    // ── Developer (dev builds only) ─────────────────────────────────────────
+    ...(!app.isPackaged ? [{
+      label: 'Developer',
+      submenu: [
+        {
+          label:       'Toggle Developer Tools',
+          accelerator: 'CmdOrCtrl+Alt+I',
+          click(_, win) { win?.webContents.toggleDevTools(); },
+        },
+        {
+          label:       'Inspect Element',
+          accelerator: 'CmdOrCtrl+Shift+I',
+          click(_, win) {
+            if (win) {
+              win.webContents.toggleDevTools();
+              win.webContents.once('devtools-opened', () => {
+                win.webContents.devToolsWebContents?.focus();
+              });
+            }
+          },
+        },
+        { type: 'separator' },
+        {
+          label:       'Force Reload',
+          accelerator: 'CmdOrCtrl+Shift+R',
+          click(_, win) { win?.webContents.reloadIgnoringCache(); },
+        },
+      ],
+    }] : []),
 
     // ── Help ────────────────────────────────────────────────────────────────
     {

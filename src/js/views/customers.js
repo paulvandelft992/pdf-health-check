@@ -4,11 +4,14 @@ const CustomersView = (() => {
   /* ── Geographic data ────────────────────────────────────────────────────── */
   const GEO = {
     EMEA: [
-      'Austria','Belgium','Czech Republic','Denmark','Egypt','Finland',
-      'France','Germany','Greece','Hungary','Ireland','Israel','Italy',
-      'Kenya','Morocco','Netherlands','Nigeria','Norway','Poland',
-      'Portugal','Qatar','Romania','Saudi Arabia','South Africa',
-      'Spain','Sweden','Switzerland','Turkey','UAE','United Kingdom',
+      'Austria','Bahrain','Belgium','Bulgaria','Croatia','Cyprus',
+      'Czech Republic','Denmark','Egypt','Estonia','Finland','France',
+      'Germany','Greece','Hungary','Ireland','Israel','Italy','Jordan',
+      'Kenya','Kuwait','Latvia','Lithuania','Luxembourg','Malta',
+      'Morocco','Netherlands','Nigeria','Norway','Poland','Portugal',
+      'Qatar','Romania','Saudi Arabia','Serbia','Slovakia','Slovenia',
+      'South Africa','Spain','Sweden','Switzerland','Turkey','UAE',
+      'United Kingdom',
     ],
     APAC: [
       'Australia','China','Hong Kong','India','Indonesia','Japan',
@@ -16,8 +19,8 @@ const CustomersView = (() => {
       'Taiwan','Thailand','Vietnam',
     ],
     Americas: [
-      'Argentina','Brazil','Canada','Chile','Colombia','Mexico',
-      'Peru','United States',
+      'Argentina','Brazil','Canada','Chile','Colombia','Costa Rica',
+      'Ecuador','Mexico','Panama','Peru','United States','Uruguay',
     ],
   };
 

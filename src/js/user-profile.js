@@ -310,6 +310,12 @@ const UserProfile = (() => {
     const profile = { firstName, lastName, email };
     set(profile);
     updateTopbarChip();
+    // Persist to settings.json so it survives localStorage being cleared between sessions
+    if (window.electronAPI?.getSettings && window.electronAPI?.saveSettings) {
+      window.electronAPI.getSettings().then(s => {
+        window.electronAPI.saveSettings({ ...(s || {}), userProfile: profile });
+      }).catch(() => {});
+    }
     Modal.close();
     Toast.show(t('profile.savedToast').replace('{name}', firstName), 'success');
     if (onSave) onSave(profile);

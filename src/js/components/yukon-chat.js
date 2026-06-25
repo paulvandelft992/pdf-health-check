@@ -348,7 +348,7 @@ const YukonChat = (() => {
           fullText += chunk.text;
           if (statusEl) { statusEl.remove(); statusEl = null; }
           assistantEl.querySelector('.yukon-msg-text').innerHTML = _renderMarkdown(fullText);
-          _scrollToBottom(false);   // smooth while streaming
+          _scrollToBottom(true);   // instant while streaming — avoids animation lag
         }
         if (chunk.done) {
           assistantEl.dataset.rawText = fullText;
@@ -367,10 +367,11 @@ const YukonChat = (() => {
 
     _isStreaming = false;
     _setSendDisabled(false);
-    _scrollToBottom(false);
+    _scrollToBottom(true);
 
-    // Restore suggestions after answer
+    // Restore suggestions after answer — re-scroll after they take up space
     _updateSuggestedPrompts();
+    requestAnimationFrame(() => _scrollToBottom(true));
     input.focus();
   }
 

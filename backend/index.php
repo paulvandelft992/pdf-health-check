@@ -255,6 +255,12 @@ try {
         exit;
     }
 
+    // Report Builder — CRUD + run engine
+    if (strpos($path, '/api/report-builder') === 0) {
+        require_once __DIR__ . '/api/report-builder.php';
+        exit;
+    }
+
     Response::notFound("Route not found: {$method} {$path}");
 
 } catch (PDOException $e) {

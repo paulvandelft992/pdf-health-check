@@ -164,5 +164,19 @@ const API = (() => {
     process: (formData) => request('POST', '/api/carwash/process', formData, true),
   };
 
-  return { init, auth, customers, healthChecks, documents, stats, crawl, appSettings, yukon, exportData, execReport, carwash };
+  // ── Report Builder ─────────────────────────────────────────────────────────
+  const reportBuilder = {
+    fields:  ()          => request('GET',  '/api/report-builder/fields'),
+    run:     (config)    => request('POST', '/api/report-builder/run', config),
+    list:    ()          => request('GET',  '/api/report-builder/saved'),
+    get:     (id)        => request('GET',  `/api/report-builder/saved/${id}`),
+    create:  (data)      => request('POST', '/api/report-builder/saved', data),
+    update:  (id, data)  => request('PUT',  `/api/report-builder/saved/${id}`, data),
+    delete:  (id)        => request('DELETE',`/api/report-builder/saved/${id}`),
+    share:   (id)        => request('POST', `/api/report-builder/saved/${id}/share`),
+    clone:   (id)        => request('POST', `/api/report-builder/saved/${id}/clone`),
+    shared:  ()          => request('GET',  '/api/report-builder/shared'),
+  };
+
+  return { init, auth, customers, healthChecks, documents, stats, crawl, appSettings, yukon, exportData, execReport, carwash, reportBuilder };
 })();

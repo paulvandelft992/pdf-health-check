@@ -44,5 +44,23 @@
     "notes": [
       "Bug fixed that caused auto update to fail"
     ]
+  },
+  {
+    "version": "1.3.0",
+    "date": "2026-06-19",
+    "tag": "Update",
+    "notes": [
+      "New report builder - build your own reports and publish them",
+      "UI enhancements to better align with Adobe Spectrum",
+      "Bug fixes"
+    ]
+  },
+  {
+    "version": "1.3.1",
+    "date": "2026-06-22",
+    "tag": "Update",
+    "notes": [
+      "Minor bug fix"
+    ]
   }
 ]

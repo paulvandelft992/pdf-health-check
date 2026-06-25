@@ -143,6 +143,15 @@
           </svg>
           <span>Reports</span>
         </a>
+        <a class="nav-item" data-view="report-builder" href="#">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="11" width="3" height="7" rx="1" fill="currentColor"/>
+            <rect x="7"  y="7"  width="3" height="11" rx="1" fill="currentColor"/>
+            <rect x="12" y="4"  width="3" height="14" rx="1" fill="currentColor"/>
+            <rect x="17" y="9"  width="3" height="9"  rx="1" fill="currentColor" opacity=".5"/>
+          </svg>
+          <span>Report Builder</span>
+        </a>
         <a class="nav-item" data-view="exec" href="#">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M14.9727 5.05371H13.4727V3.31445C13.4727 2.8955 13.0771 2.5 12.6582 2.5H7.1875C6.78906 2.5 6.5 2.81543 6.5 3.25V4.99023H5V3.25C5 1.98828 5.96094 1 7.1875 1H12.6582C13.8916 1 14.9727 2.08105 14.9727 3.31445V5.05371Z" fill="currentColor"/>
@@ -201,6 +210,7 @@
   </div>
 
   <!-- Scripts -->
+  <script src="vendor/chart.umd.min.js"></script>
   <script src="js/app-config.js"></script>
   <script>
     fetch('releases.json').then(r => r.json()).then(d => { window.__RELEASES__ = d; }).catch(() => {});
@@ -226,6 +236,7 @@
   <script src="js/views/customers.js"></script>
   <script src="js/views/healthcheck.js"></script>
   <script src="js/views/reports.js"></script>
+  <script src="js/views/report-builder.js"></script>
   <script src="js/views/exec.js"></script>
   <script src="js/views/exec-report.js"></script>
   <script src="js/views/settings.js"></script>

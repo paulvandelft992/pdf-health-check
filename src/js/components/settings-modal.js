@@ -191,8 +191,15 @@ const SettingsModal = (() => {
       }
       if (!ok) return;
 
-      UserProfile.set({ firstName, lastName, email });
+      const profile = { firstName, lastName, email };
+      UserProfile.set(profile);
       UserProfile.updateTopbarChip();
+      // Also persist to settings.json so it survives localStorage being cleared
+      if (window.electronAPI?.getSettings && window.electronAPI?.saveSettings) {
+        window.electronAPI.getSettings().then(s => {
+          window.electronAPI.saveSettings({ ...(s || {}), userProfile: profile });
+        }).catch(() => {});
+      }
       Toast.show(t('profile.savedToast').replace('{name}', firstName), 'success');
     });
   }
@@ -417,7 +424,15 @@ const SettingsModal = (() => {
 
   /* Yukon/AI ----------------------------------------------------------------- */
   async function _renderYukon(body) {
-    if (!UserProfile.isAdmin()) { _renderAdminGate(body, 'yukon'); return; }
+    if (!UserProfile.isAdmin()) {
+      // Non-admin users see only their conversation history
+      body.innerHTML = `
+        ${_sectionHead(t('settings.yukonSection'), t('settings.yukonDesc'))}
+        <div class="pm-subsection-label">${t('settings.yukonHistorySection') || 'Conversation History'}</div>
+        <div id="pmYukonHistory" class="yukon-hist-list"></div>`;
+      _renderYukonHistory(body);
+      return;
+    }
 
     // Show a spinner while fetching current values from the backend
     body.innerHTML = `<div style="padding:32px;color:var(--gray-400);font-size:13px">Loading…</div>`;
@@ -934,6 +949,67 @@ const SettingsModal = (() => {
               <tr><td><kbd class="tg-kbd">Enter</kbd></td><td>Send Yukon message</td></tr>
               <tr><td><kbd class="tg-kbd">Shift Enter</kbd></td><td>New line in Yukon input</td></tr>
               <tr><td><kbd class="tg-kbd">Esc</kbd></td><td>Close modal / dismiss panel</td></tr>
+            </table>
+          </div>
+        </details>
+
+        <details class="tg-section">
+          <summary class="tg-summary">Report Builder</summary>
+          <div class="tg-body">
+            <p>The <strong>Report Builder</strong> (sidebar → bar-chart icon, shortcut <kbd class="tg-kbd">⌘6</kbd>) lets you construct fully custom reports from the health-check database without writing SQL.</p>
+            <h4 style="margin:14px 0 6px;font-size:13px">Configuration panel</h4>
+            <table class="tg-table">
+              <tr><th>Field</th><th>What it does</th></tr>
+              <tr><td>Scope</td><td>Limits the data universe — My Data, a specific Customer, Region, Vertical, Segment, or Country</td></tr>
+              <tr><td>Date Range</td><td>Last 7 / 30 / 90 / 365 days, this year, or all time</td></tr>
+              <tr><td>Group By</td><td>Dimension to aggregate on — Customer, Region, Vertical, Segment, Month, Creator App, and more. Leave blank for KPI cards (single-value mode)</td></tr>
+              <tr><td>Metrics</td><td>Any combination of 25+ available metrics (scores, PDF counts, rates, sizes, etc.). Use the search box to filter the list</td></tr>
+              <tr><td>Visualization</td><td>Bar, Horizontal Bar, Line, Area, Pie, Donut, or Table</td></tr>
+              <tr><td>Sort &amp; Limit</td><td>Highest or lowest first, with an optional row cap (default 20)</td></tr>
+              <tr><td>Filters</td><td>Add one or more field-level filters (equals, not equals, contains, is set, yes/no for boolean fields)</td></tr>
+            </table>
+            <h4 style="margin:14px 0 6px;font-size:13px">Preview panel</h4>
+            <p>The live preview is always visible on the right. Click <strong>Run</strong> to execute the query and render the chart or table. The preview scrolls independently so the config panel stays accessible while reviewing results.</p>
+            <h4 style="margin:14px 0 6px;font-size:13px">Saving &amp; sharing</h4>
+            <ul class="tg-ul">
+              <li><strong>Save Report</strong> — persists to the <code>saved_reports</code> database table under your user profile.</li>
+              <li><strong>Share to library</strong> — makes the report visible to all users in the Shared Library tab.</li>
+              <li><strong>Clone</strong> — copies a shared or personal report into your own library for independent editing.</li>
+            </ul>
+            <h4 style="margin:14px 0 6px;font-size:13px">Export &amp; pin</h4>
+            <ul class="tg-ul">
+              <li><strong>Export PDF</strong> — generates an accessible PDF via Adobe PDF Services (Auto Tag pipeline).</li>
+              <li><strong>Export Excel</strong> — downloads the result table as <code>.xlsx</code>.</li>
+              <li><strong>Copy Image</strong> — copies the chart canvas to the system clipboard as a PNG.</li>
+              <li><strong>Pin to Dashboard</strong> — adds the report as a live widget on the Dashboard. Widgets auto-refresh on every dashboard load. You can resize them (drag the bottom handle), change their column width (1–3 columns), reorder them, or unpin them directly from the dashboard.</li>
+            </ul>
+            <h4 style="margin:14px 0 6px;font-size:13px">Available metrics (25+)</h4>
+            <table class="tg-table">
+              <tr><th>Metric key</th><th>Description</th></tr>
+              <tr><td><code>hc_count</code></td><td>Number of health checks</td></tr>
+              <tr><td><code>pdf_count</code></td><td>Total PDFs analysed</td></tr>
+              <tr><td><code>avg_overall_score</code></td><td>Average overall quality score (0–100)</td></tr>
+              <tr><td><code>avg_access_score</code></td><td>Average accessibility sub-score</td></tr>
+              <tr><td><code>avg_security_score</code></td><td>Average security sub-score</td></tr>
+              <tr><td><code>tagged_rate</code></td><td>% of PDFs with accessibility tags</td></tr>
+              <tr><td><code>encrypted_rate</code></td><td>% of PDFs that are encrypted</td></tr>
+              <tr><td><code>form_rate</code></td><td>% of PDFs containing AcroForm / XFA forms</td></tr>
+              <tr><td><code>pdfa_rate</code></td><td>% of PDFs claiming PDF/A compliance</td></tr>
+              <tr><td><code>pii_rate</code></td><td>% of PDFs with PII detected in author metadata</td></tr>
+              <tr><td><code>avg_pages</code></td><td>Average page count per PDF</td></tr>
+              <tr><td><code>avg_file_size_mb</code></td><td>Average file size in MB</td></tr>
+              <tr><td colspan="2" style="color:var(--gray-500);font-size:11px">…and 13 more — all filterable via the Metrics search box in the builder</td></tr>
+            </table>
+            <h4 style="margin:14px 0 6px;font-size:13px">Backend API</h4>
+            <table class="tg-table">
+              <tr><th>Method</th><th>Path</th><th>Description</th></tr>
+              <tr><td>GET</td><td><code>/api/report-builder/fields</code></td><td>Returns all available scopes, dimensions, metrics, viz types, date ranges, and filter fields</td></tr>
+              <tr><td>POST</td><td><code>/api/report-builder/run</code></td><td>Executes a report config and returns labels, datasets, and metric cards</td></tr>
+              <tr><td>GET</td><td><code>/api/report-builder/reports</code></td><td>Lists the current user's saved reports</td></tr>
+              <tr><td>POST</td><td><code>/api/report-builder/reports</code></td><td>Creates a new saved report</td></tr>
+              <tr><td>PUT</td><td><code>/api/report-builder/reports/:id</code></td><td>Updates an existing saved report</td></tr>
+              <tr><td>DELETE</td><td><code>/api/report-builder/reports/:id</code></td><td>Deletes a saved report</td></tr>
+              <tr><td>GET</td><td><code>/api/report-builder/shared</code></td><td>Lists all reports shared to the team library</td></tr>
             </table>
           </div>
         </details>

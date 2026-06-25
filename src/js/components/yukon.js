@@ -352,6 +352,40 @@ Scores ≥ 75 = Good · 50–74 = Needs improvement · < 50 = Poor
 
 ---
 
+## How to Use the Report Builder
+
+The **Report Builder** (sidebar → bar-chart icon, or ⌘6) lets you create custom reports from the health-check database — no SQL needed.
+
+### Steps
+1. Click **Report Builder** in the left sidebar.
+2. Click **+ New Report** (or open an existing saved report from the list).
+3. In the left configuration panel, set your options:
+   - **Scope** — limit data to your own records, a specific customer, region, vertical, segment, or country.
+   - **Date Range** — last 7, 30, 90, 365 days, this year, or all time.
+   - **Group By** — choose a dimension (customer, region, vertical, month, creator app, etc.) or leave blank for KPI mode (single summary values).
+   - **Metrics** — tick any combination of 25+ metrics. Use the search box to find metrics quickly.
+   - **Visualization** — bar, horizontal bar, line, area, pie, donut, or table.
+   - **Sort & Limit** — highest or lowest first, capped at a chosen row count.
+   - **Filters** — add one or more field-level filters (e.g. "country equals US", "encrypted = No").
+4. Click **Run** to see the result in the live preview panel on the right.
+5. Give the report a name and click **Save Report** to persist it.
+
+### Sharing and exporting
+- **Share to library** — makes the report available to all users under the Shared Library tab.
+- **Export PDF** — generates an accessible, tagged PDF via Adobe PDF Services.
+- **Export Excel** — downloads the result as an .xlsx spreadsheet.
+- **Copy Image** — copies the chart as a PNG to your clipboard.
+- **Pin to Dashboard** — adds the report as a live widget on the Dashboard. Widgets refresh automatically each time the dashboard loads.
+
+### Dashboard widgets
+- Drag the handle at the bottom of a widget to **resize its height**.
+- Click the ⟷ button in the widget header to cycle its **width** (1, 2, or 3 columns).
+- Use the ↑ ↓ buttons to **reorder** widgets.
+- Click × to **unpin** a widget.
+- Click **+ New Report** in the "My Pinned Reports" header to **pin a saved report directly from the dashboard** without entering the builder.
+
+---
+
 ## Settings
 
 Access settings from the gear icon (top-right toolbar) or via the keyboard shortcut ⌘,. Tabs include:

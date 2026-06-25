@@ -332,7 +332,8 @@ function initShortcuts(navigate, openCreateMenu, createHcItem, createCustomerIte
       if (k === '2') { e.preventDefault(); navigate('customers');    return; }
       if (k === '3') { e.preventDefault(); navigate('healthchecks'); return; }
       if (k === '4') { e.preventDefault(); navigate('reports');      return; }
-      if (k === '5') { e.preventDefault(); navigate('exec');         return; }
+      if (k === '5') { e.preventDefault(); navigate('exec');            return; }
+      if (k === '6') { e.preventDefault(); navigate('report-builder'); return; }
       if (k === ',') { e.preventDefault(); SettingsModal.open('connection'); return; }
     }
 
@@ -636,13 +637,14 @@ const App = (() => {
   let currentParams = {};
 
   const views = {
-    dashboard:    DashboardView,
-    customers:    CustomersView,
-    healthchecks: HealthCheckView,
-    reports:      ReportsView,
-    exec:         ExecView,
-    'exec-report': ExecReportView,       // executive portfolio report
-    report:       CustomerReportView,   // customer-facing PDF report
+    dashboard:        DashboardView,
+    customers:        CustomersView,
+    healthchecks:     HealthCheckView,
+    reports:          ReportsView,
+    'report-builder': ReportBuilderView,
+    exec:             ExecView,
+    'exec-report':    ExecReportView,
+    report:           CustomerReportView,
   };
 
   async function init() {
@@ -671,6 +673,14 @@ const App = (() => {
     if (window.electronAPI) {
       settings = await window.electronAPI.getSettings() || {};
     }
+
+    // Restore user profile from settings.json if localStorage is missing it.
+    // localStorage can be cleared between sessions in Electron (especially in
+    // dev mode), so settings.json is the authoritative persistent store.
+    if (settings.userProfile && !UserProfile.isConfigured()) {
+      UserProfile.set(settings.userProfile);
+    }
+
     const backendUrl = (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.backendUrl)
       ? APP_CONFIG.backendUrl
       : (settings.backendUrl || '');
@@ -1001,7 +1011,9 @@ function _initMenuListeners() {
       case 'nav:guide':           SettingsModal.open('guide');    break;
       case 'nav:whats-new':       SettingsModal.open('whats-new'); break;
       case 'nav:feedback':        _openFeedbackModal();           break;
-      case 'nav:new-healthcheck': App.navigate('healthchecks', { action: 'new' }); break;
+      case 'nav:new-healthcheck':   App.navigate('healthchecks',     { action: 'new' }); break;
+      case 'nav:report-builder':    App.navigate('report-builder');  break;
+      case 'nav:new-report':        App.navigate('report-builder',   { action: 'new' }); break;
       case 'nav:new-customer':
         if (typeof CustomersView !== 'undefined') CustomersView.openCustomerForm();
         break;

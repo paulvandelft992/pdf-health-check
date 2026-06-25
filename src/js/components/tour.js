@@ -53,6 +53,11 @@ const Tour = (() => {
       body:   'Surface patterns across all Health Checks — top accessibility issues, PII exposure, score distributions, timelines and breakdowns by region or vertical.',
     },
     {
+      target: '[data-view="report-builder"]',
+      title:  'Report Builder',
+      body:   'Build fully custom reports from your health-check data. Choose your scope (my data, a specific customer, region, vertical…), pick any combination of metrics, select a visualisation (bar, line, area, pie…), add filters, and pin the result straight to your dashboard. Reports can also be shared with the team library, exported as PDF or Excel, or copied as an image.',
+    },
+    {
       target: '[data-view="exec"]',
       title:  'Executive View',
       body:   'Generate a polished portfolio summary across multiple customers and health checks — ideal for sharing with management or stakeholders.',
