@@ -1,10 +1,16 @@
 <?php
 // ─── Database Configuration ─────────────────────────────────────────────────
-define('DB_HOST',    getenv('DB_HOST')    ?: 'localhost');
-define('DB_PORT',    getenv('DB_PORT')    ?: '3306');
-define('DB_NAME',    getenv('DB_NAME')    ?: 'pdf_health_check');
-define('DB_USER',    getenv('DB_USER')    ?: 'REDACTED');
-define('DB_PASS',    getenv('DB_PASS')    ?: 'REDACTED');
+// Credentials are loaded from config/local.php (gitignored, never commit that file).
+// local.php must call putenv() for DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS.
+$_localConfig = __DIR__ . '/local.php';
+if (file_exists($_localConfig)) require $_localConfig;
+unset($_localConfig);
+
+define('DB_HOST',    getenv('DB_HOST') ?: 'localhost');
+define('DB_PORT',    getenv('DB_PORT') ?: '3306');
+define('DB_NAME',    getenv('DB_NAME') ?: 'pdf_health_check');
+define('DB_USER',    getenv('DB_USER') ?: '');
+define('DB_PASS',    getenv('DB_PASS') ?: '');
 define('DB_CHARSET', 'utf8mb4');
 
 function getDB(): PDO {

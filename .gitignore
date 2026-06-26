@@ -10,6 +10,7 @@ dist/
 # Environment / secrets (never commit these)
 backend/config/config.php
 backend/config/*.local.php
+backend/config/local.php
 *.env
 .env
 .env.build

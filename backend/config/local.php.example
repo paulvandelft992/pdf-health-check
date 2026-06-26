@@ -1,0 +1,8 @@
+<?php
+// Copy this file to local.php and fill in real values.
+// local.php is gitignored — never commit it.
+putenv('DB_HOST=localhost');
+putenv('DB_PORT=3306');
+putenv('DB_NAME=pdf_health_check');
+putenv('DB_USER=your_db_username');
+putenv('DB_PASS=your_db_password');
