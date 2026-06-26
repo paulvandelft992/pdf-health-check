@@ -32,7 +32,8 @@
     "publish": {
       "provider": "github",
       "owner": "paulvandelft992",
-      "repo": "pdf-health-check"
+      "repo": "pdf-health-check",
+      "releaseType": "release"
     },
     "mac": {
       "category": "public.app-category.productivity",
