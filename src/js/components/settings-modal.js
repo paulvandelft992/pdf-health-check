@@ -848,7 +848,7 @@ const SettingsModal = (() => {
             <table class="tg-table">
               <tr><th>Layer</th><th>Technology</th></tr>
               <tr><td>Shell</td><td>Electron main process (Node 20)</td></tr>
-              <tr><td>Backend</td><td>Express 4 · pdfjs-dist · pdf-lib · sharp</td></tr>
+              <tr><td>Backend</td><td>Adobe PDF Services API</td></tr>
               <tr><td>Frontend</td><td>Vanilla JS ES2022 · CSS custom properties</td></tr>
               <tr><td>AI</td><td>Adobe Yukon (RAG) via REST API</td></tr>
             </table>
@@ -861,7 +861,7 @@ const SettingsModal = (() => {
             <ol class="tg-ol">
               <li>User drops PDF(s) onto the upload zone.</li>
               <li>Frontend POSTs the file to the local Express server (<code>/api/analyze</code>).</li>
-              <li>Express extracts text &amp; metadata with <strong>pdfjs-dist</strong>, applies scoring rules, and returns a structured JSON report.</li>
+              <li>Adobe PDF Services API extracts text &amp; metadata, applies scoring rules, and returns a structured JSON report.</li>
               <li>Frontend renders the report (scorecard, issues list, per-page preview).</li>
               <li>User may export a Markdown or HTML report, or ask the Yukon AI assistant follow-up questions about the analysis.</li>
             </ol>
