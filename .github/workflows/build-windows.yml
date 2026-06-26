@@ -22,6 +22,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Create app config
+        shell: bash
+        run: |
+          cat > src/js/app-config.js << 'EOF'
+          const APP_CONFIG = {
+            backendUrl: 'BACKEND_URL_PLACEHOLDER',
+            apiKey:     'API_KEY_PLACEHOLDER',
+          };
+          EOF
+          sed -i "s|BACKEND_URL_PLACEHOLDER|$APP_BACKEND_URL|g" src/js/app-config.js
+          sed -i "s|API_KEY_PLACEHOLDER|$APP_API_KEY|g" src/js/app-config.js
+        env:
+          APP_BACKEND_URL: ${{ secrets.APP_BACKEND_URL }}
+          APP_API_KEY: ${{ secrets.APP_API_KEY }}
+
       - name: Build Windows installer
         run: npx electron-builder --win --publish never
 
