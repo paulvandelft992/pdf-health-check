@@ -65,7 +65,7 @@
     },
     "win": {
       "icon": "assets/icon.ico",
-      "artifactName": "${productName}-Setup.${ext}",
+      "artifactName": "PDF-Health-Check-Setup.${ext}",
       "target": [
         "nsis"
       ]
