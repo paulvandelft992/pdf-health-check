@@ -22,20 +22,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify GH_TOKEN is set
+      - name: Build Windows installer
+        run: npx electron-builder --win --publish never
+
+      - name: Upload to GitHub Release
         shell: bash
         run: |
-          if [ -z "$GH_TOKEN" ]; then
-            echo "ERROR: GH_TOKEN secret is not set."
-            echo "Go to: Settings → Secrets and variables → Actions → New repository secret"
-            echo "Name: GH_TOKEN  Value: your GitHub personal access token"
-            exit 1
-          fi
-          echo "GH_TOKEN is set (${#GH_TOKEN} chars)"
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-
-      - name: Build & publish Windows installer
-        run: npm run release:win:ci
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v${VERSION}"
+          echo "Uploading to release ${TAG}"
+          gh release upload "${TAG}" \
+            "dist/PDF-Health-Check-Setup.exe" \
+            "dist/PDF-Health-Check-Setup.exe.blockmap" \
+            "dist/latest.yml" \
+            --clobber
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
