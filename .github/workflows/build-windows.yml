@@ -45,7 +45,14 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           TAG="v${VERSION}"
-          echo "Uploading to release ${TAG}"
+          echo "Targeting release ${TAG}"
+
+          # Create the release if the Mac build hasn't done it yet
+          if ! gh release view "${TAG}" &>/dev/null; then
+            echo "Release not found — creating it"
+            gh release create "${TAG}" --title "${VERSION}" --notes "Release ${VERSION}"
+          fi
+
           gh release upload "${TAG}" \
             "dist/PDF-Health-Check-Setup.exe" \
             "dist/PDF-Health-Check-Setup.exe.blockmap" \
