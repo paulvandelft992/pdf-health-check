@@ -1035,6 +1035,8 @@ html[data-theme="dark"] .search-shortcut-hint {
               gap     220ms cubic-bezier(.4,0,.2,1);
   position: relative;
   margin-bottom: 5px;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 .nav-item svg {
   width: 22px;
@@ -1497,7 +1499,7 @@ tbody td {
 /* ─── Source Mode Tabs (Upload / Crawl / Both) ─────────────── */
 .source-tabs {
   display: flex;
-  border-bottom: 2px solid transparent;
+  
   background: none;
 
   overflow: hidden;
@@ -1527,7 +1529,7 @@ tbody td {
 .source-tab.active {
   color: var(--gray-700);
   border-bottom-color: var(--gray-700);
-  background: var(--white);
+  
   font-weight: 600;
 }
 
@@ -3383,10 +3385,10 @@ html[data-theme="dark"] .upload-zone.drag-over {
   background: var(--accent-light);
 }
 
-html[data-theme="dark"] .source-tabs { background: var(--gray-100); border-color: var(--gray-200); }
-html[data-theme="dark"] .source-tab:hover { background: var(--gray-200); }
-html[data-theme="dark"] .source-tab.active { background: var(--white); }
-html[data-theme="dark"] .source-tab + .source-tab { border-color: var(--gray-200); }
+
+html[data-theme="dark"] .source-tab:hover { }
+html[data-theme="dark"] .source-tab.active { border-bottom: 2px solid #ffffff; }
+
 
 /* ── Buttons ── */
 html[data-theme="dark"] .btn-danger { background: var(--red-light); color: var(--red); }
@@ -4356,47 +4358,49 @@ html[data-theme="dark"] .shortcut-kbd {
 
 /* Source + crawl-mode tab buttons */
 .add-source-tabs {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 0px;
-  border-radius: 8px;
+  
+ 
+   
   margin-bottom: 22px;
-  background:var(--gray-100);
+  background:none;
 }
 .add-crawl-modes {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-.add-source-tab,
-.add-crawl-mode-btn {
+  display: inline-block;
   padding: 9px 8px;
+  margin-bottom: 16px;
+ 
+}
+.add-source-tab {
+  padding: 0px 8px 9px 8px;
   font-size: 13px;
   font-weight: 600;
   background: none;
   color: var(--gray-700);
-  border: 2px solid transparent;
-
-  border-radius: 8px;
+  color: var(--gray-500);
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  display: inline-;
+  border-radius: 0px;
   cursor: pointer;
   transition: background .15s, color .15s, border-color .15s;
 }
 .add-source-tab.active,
 .add-crawl-mode-btn.active {
-  background: var(--white);
+  font-weight: 700;
+  background: none;
   color: var(--gray-800);
-  border-color: var(--gray-800);
+  border-bottom-color: var(--gray-800);
 }
 .add-source-tab:not(.active):hover,
 .add-crawl-mode-btn:not(.active):hover {
   border-color: transparent;
   color:var(--gray-800);
+  
 }
 
 /* Drop zone */
 .add-drop-zone {
-  border: 2px dashed var(--gray-200);
+  border: 2px solid var(--gray-200);
   border-radius: 10px;
   padding: 32px;
   text-align: center;
